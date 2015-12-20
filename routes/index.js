@@ -1,3 +1,4 @@
+var config = require('./bin/config.json')
 var express = require('express');
 var router = express.Router();
 
@@ -17,7 +18,7 @@ router.post('/login', function(req, res) {
     if (rcookie != '' && rcookie != null){
 
         request({
-            url: 'http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/',
+            url: config.KANCOLLE_GAME_URL,
             headers: {
                 'Cookie': rcookie
             }
@@ -40,7 +41,7 @@ router.post('/login', function(req, res) {
             }
         });
     } else if (validator.isEmail(login_id)) {
-        request('https://www.dmm.com/my/-/login/', function (error, response, body) {
+        request(config.DMM_LOGIN_URL, function (error, response, body) {
             if (!error && response.statusCode === 200) {
                 var dmm_token = body.split(/DMM_TOKEN.*?"([a-z0-9]{32})"/)[1];
                 var post_data = body.split(/token.*?"([a-z0-9]{32})"/)[3];
@@ -54,7 +55,7 @@ router.post('/login', function(req, res) {
             var id_token = $('input#id_token').val();
 
             request({
-                url: 'https://www.dmm.com/my/-/login/ajax-get-token/',
+                url: config.DMM_LOGIN_AJAX_TOKEN_URL,
                 method: 'POST',
                 headers: {
                     'DMM_TOKEN': dmm_token,
@@ -81,7 +82,7 @@ router.post('/login', function(req, res) {
                     login_formdata[login_id_token] = login_id;
                     login_formdata[login_password_token] = password;
                     request({
-                        url: 'https://www.dmm.com/my/-/login/auth/',
+                        url: config.DMM_AUTH_URL,
                         method: 'POST',
                         form: login_formdata
                     }, function(error, response, logindata) {
@@ -91,7 +92,7 @@ router.post('/login', function(req, res) {
                                 cookie += cookieString.split(';')[0] + ';';
                             });
                             request({
-                                url: 'http://www.dmm.com/netgame/social/-/gadgets/=/app_id=854854/',
+                                url: config.KANCOLLE_GAME_URL,
                                 headers: {
                                     'Cookie': cookie
                                 }
