@@ -1,4 +1,4 @@
-var config = require('./bin/config.json')
+var config = require('../bin/config.json')
 var express = require('express');
 var router = express.Router();
 
