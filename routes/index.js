@@ -1,9 +1,11 @@
-var config = require('../bin/config.json')
+var config = require('../bin/config.json');
 var express = require('express');
 var router = express.Router();
 
 var validator = require('validator');
 var request = require('request');
+var defaultRequest = request.defaults({followRedirect: false});
+
 var cheerio = require('cheerio');
 var async = require('async');
 
@@ -16,13 +18,12 @@ router.post('/login', function (req, res) {
     var password = req.body.password + '';
 
     async.waterfall([
-        function(callback) {
-            console.info('login url');
-            request(config.DMM_LOGIN_URL, function (error, response, htmlbody) {
+        function (callback) {
+            defaultRequest(config.DMM_LOGIN_URL, function (error, response, htmlbody) {
                 callback(error, response, htmlbody)
             });
         },
-        function(response, htmlbody, callback) {
+        function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
                 console.info('login page');
                 var dmm_token = htmlbody.split(/DMM_TOKEN.*?"([a-z0-9]{32})"/)[1];
@@ -31,7 +32,7 @@ router.post('/login', function (req, res) {
                 var $ = cheerio.load(htmlbody);
                 var id_token = $('input#id_token').val();
 
-                request({
+                defaultRequest({
                     url: config.DMM_LOGIN_AJAX_TOKEN_URL,
                     method: 'POST',
                     headers: {
@@ -48,7 +49,7 @@ router.post('/login', function (req, res) {
                 callback('error on visit DMM_LOGIN_URL');
             }
         },
-        function(response, xhrbody, callback) {
+        function (response, xhrbody, callback) {
             console.info("parse and post...");
             xhrbody = JSON.parse(xhrbody);
             var login_id_token = xhrbody['login_id'];
@@ -62,7 +63,7 @@ router.post('/login', function (req, res) {
             };
             login_formdata[login_id_token] = login_id;
             login_formdata[login_password_token] = password;
-            request({
+            defaultRequest({
                 url: config.DMM_AUTH_URL,
                 method: 'POST',
                 form: login_formdata
@@ -70,31 +71,31 @@ router.post('/login', function (req, res) {
                 callback(error, response, logindata)
             });
         },
-        function(response, logindata, callback) {
+        function (response, logindata, callback) {
             console.info("get login result");
             if (response.statusCode === 302) {
                 var cookie = '';
                 response.headers['set-cookie'].forEach(function (cookieString) {
                     cookie += cookieString.split(';')[0] + ';';
                 });
-                request({
+                defaultRequest({
                     url: config.KANCOLLE_GAME_URL,
                     headers: {
                         'Cookie': cookie
                     }
-                }, function (error, response, htmlbody,cookie) {
-                    callback(error, response, htmlbody,cookie)
+                }, function (error, response, htmlbody) {
+                    callback(error, response, htmlbody, cookie)
                 });
             } else if (response.statusCode === 200) {
-                    callback('error when login DMM');
+                callback('Login Error - Username Or Password InCorrect.');
             } else {
-                callback('error when login DMM');
+                callback('Login Error - Unknown Reason.');
             }
-        }], function (error, response,htmlbody,cookie) {
-        if (error) {
+        }], function (error, response, htmlbody, cookie) {
+        if (error || response.statusCode !== 200) {
             return res.status(500).send(error);
         }
-        $ = cheerio.load(htmlbody);
+        var $ = cheerio.load(htmlbody);
         var link = $('iframe#game_frame').attr('src');
         res.json({
             cookie: cookie,
