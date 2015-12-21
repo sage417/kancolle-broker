@@ -31,7 +31,8 @@
     "ejs": "~0.8.5",
     "validator": "3.28.0",
     "request": "2.53.0",
-    "cheerio": "0.18.0"
+    "cheerio": "0.18.0",
+	"async": "1.5.x"
   },
   "keywords": [
     "kancolle"
