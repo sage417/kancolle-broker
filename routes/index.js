@@ -4,10 +4,13 @@ var router = express.Router();
 
 var validator = require('validator');
 var request = require('request');
-var defaultRequest = request.defaults({followRedirect: false});
 
 var cheerio = require('cheerio');
 var async = require('async');
+
+
+var userAgent = config.USER_AGENT;
+var defaultRequest = request.defaults({followRedirect: false});
 
 router.get('/', function (req, res) {
     res.render('index');
@@ -36,6 +39,7 @@ router.post('/login', function (req, res) {
                     url: config.DMM_LOGIN_AJAX_TOKEN_URL,
                     method: 'POST',
                     headers: {
+                        'User-Agent':userAgent,
                         'DMM_TOKEN': dmm_token,
                         'X-Requested-With': 'XMLHttpRequest'
                     },
@@ -66,6 +70,9 @@ router.post('/login', function (req, res) {
             defaultRequest({
                 url: config.DMM_AUTH_URL,
                 method: 'POST',
+                headers:{
+                    'User-Agent':userAgent
+                },
                 form: login_formdata
             }, function (error, response, logindata) {
                 callback(error, response, logindata)
@@ -81,6 +88,7 @@ router.post('/login', function (req, res) {
                 defaultRequest({
                     url: config.KANCOLLE_GAME_URL,
                     headers: {
+                        'User-Agent':userAgent,
                         'Cookie': cookie
                     }
                 }, function (error, response, htmlbody) {
