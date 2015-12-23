@@ -18,6 +18,10 @@ router.get('/', function (req, res) {
 
 router.post('/login', function (req, res) {
     var login_id = req.body.login_id + '';
+
+    if(!validator.isEmail(login_id)){
+        return res.send(400);
+    }
     var password = req.body.password + '';
 
     async.waterfall([
@@ -28,7 +32,6 @@ router.post('/login', function (req, res) {
         },
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
-                console.info('login page');
                 var dmm_token = htmlbody.split(/DMM_TOKEN.*?"([a-z0-9]{32})"/)[1];
                 var post_data = htmlbody.split(/token.*?"([a-z0-9]{32})"/)[3];
 
@@ -54,7 +57,6 @@ router.post('/login', function (req, res) {
             }
         },
         function (response, xhrbody, callback) {
-            console.info("parse and post...");
             xhrbody = JSON.parse(xhrbody);
             var login_id_token = xhrbody['login_id'];
             var login_password_token = xhrbody['password'];
@@ -79,7 +81,6 @@ router.post('/login', function (req, res) {
             });
         },
         function (response, logindata, callback) {
-            console.info("get login result");
             if (response.statusCode === 302) {
                 var cookie = '';
                 response.headers['set-cookie'].forEach(function (cookieString) {
