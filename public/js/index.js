@@ -9,8 +9,9 @@
         }
     }
 
-    var lsSupported = "localStorage" in window;
-    if (lsSupported) {
+    var localStorageSupport = "localStorage" in window;
+
+    if (localStorageSupport) {
         $("#remember-box").removeClass("hidden");
         var cookie = window.localStorage.getItem('cookie');
         if (cookie) {
@@ -64,25 +65,27 @@
 
         //var uname = $("#login_id").val();
         //var pass = $("#password").val();
-        var data = $('form').serialize();
-        var remember = $("#remember").prop('checked') && lsSupported;
+        //var data = $('form').serialize();
+        //var remember = $("#remember").prop('checked') && localStorageSupport;
         $.ajax({
             type: "POST",
             url: "login",
-            data: data,
+            data: $('form').serialize(),
+            dataType:'json',
+            cache:false,
             success: function (res, status) {
                 console.log(status);
-                if (remember) {
+                if ($("#remember").prop('checked') && localStorageSupport) {
                     window.localStorage.setItem('cookie', res.cookie);
                 }
                 loadIframe(res.url);
             },
-            error: function (data, status, error) {
+            error: function (XMLHttpRequest , status, error) {
                 console.log(status);
                 console.log(error);
                 alert("Login Failed.");
-                location.reload();
-                //$("#remember").prop('checked', false);
+                //location.reload();
+                $("#remember").prop('checked', false);
             },
             beforeSend: function () {
                 $(':input').prop('disabled', true);
