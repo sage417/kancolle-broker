@@ -10,7 +10,20 @@ var async = require('async');
 
 
 var userAgent = config.USER_AGENT;
-var defaultRequest = request.defaults({followRedirect: false});
+
+var requestOptions = {
+    followRedirect: false
+};
+
+var timeout = config.REQUEST_TIMEOUT;
+if (Number.isInteger(timeout)){
+    requestOptions['timeout'] = timeout;
+}
+if (config.REQUEST_GZIP){
+    requestOptions['gzip'] = true;
+}
+
+var defaultRequest = request.defaults(requestOptions);
 
 router.get('/', function (req, res) {
     res.render('index');
