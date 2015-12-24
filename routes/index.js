@@ -16,10 +16,10 @@ var requestOptions = {
 };
 
 var timeout = config.REQUEST_TIMEOUT;
-if (Number.isInteger(timeout)){
+if (Number.isInteger(timeout)) {
     requestOptions['timeout'] = timeout;
 }
-if (config.REQUEST_GZIP){
+if (config.REQUEST_GZIP) {
     requestOptions['gzip'] = true;
 }
 
@@ -32,16 +32,14 @@ router.get('/', function (req, res) {
 router.post('/login', function (req, res) {
     var login_id = req.body.login_id + '';
 
-    if(!validator.isEmail(login_id)){
+    if (!validator.isEmail(login_id)) {
         return res.send(400);
     }
     var password = req.body.password + '';
 
     async.waterfall([
         function (callback) {
-            defaultRequest(config.DMM_LOGIN_URL, function (error, response, htmlbody) {
-                callback(error, response, htmlbody)
-            });
+            defaultRequest(config.DMM_LOGIN_URL, callback);
         },
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
@@ -55,18 +53,16 @@ router.post('/login', function (req, res) {
                     url: config.DMM_LOGIN_AJAX_TOKEN_URL,
                     method: 'POST',
                     headers: {
-                        'User-Agent':userAgent,
+                        'User-Agent': userAgent,
                         'DMM_TOKEN': dmm_token,
                         'X-Requested-With': 'XMLHttpRequest'
                     },
                     form: {
                         "token": post_data
                     }
-                }, function (error, response, xhrbody) {
-                    callback(error, response, xhrbody)
-                });
+                }, callback);
             } else {
-                callback('error on visit DMM_LOGIN_URL');
+                callback('error on visit DMM_LOGIN_URL', response, htmlbody);
             }
         },
         function (response, xhrbody, callback) {
@@ -85,13 +81,11 @@ router.post('/login', function (req, res) {
             defaultRequest({
                 url: config.DMM_AUTH_URL,
                 method: 'POST',
-                headers:{
-                    'User-Agent':userAgent
+                headers: {
+                    'User-Agent': userAgent
                 },
                 form: login_formdata
-            }, function (error, response, logindata) {
-                callback(error, response, logindata)
-            });
+            }, callback);
         },
         function (response, logindata, callback) {
             if (response.statusCode === 302) {
@@ -102,21 +96,20 @@ router.post('/login', function (req, res) {
                 defaultRequest({
                     url: config.KANCOLLE_GAME_URL,
                     headers: {
-                        'User-Agent':userAgent,
+                        'User-Agent': userAgent,
                         'Cookie': cookie
                     }
-                }, function (error, response, htmlbody) {
-                    callback(error, response, htmlbody, cookie)
-                });
+                }, callback);
             } else if (response.statusCode === 200) {
-                callback('Login Error - Username Or Password InCorrect.');
+                callback('Login Error - Username Or Password InCorrect.', response, logindata);
             } else {
-                callback('Login Error - Unknown Reason.');
+                callback('Login Error - Unknown Reason.', response, logindata);
             }
-        }], function (error, response, htmlbody, cookie) {
+        }], function (error, response, htmlbody) {
         if (error || response.statusCode !== 200) {
-            return res.status(500).send(error);
+            return res.status(500).send(error || 'Error return Status Code:' + response.statusCode);
         }
+        var cookie = response.request.headers['Cookie'];
         var $ = cheerio.load(htmlbody);
         var link = $('iframe#game_frame').attr('src');
         res.json({
