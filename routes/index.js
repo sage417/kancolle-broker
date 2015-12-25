@@ -25,10 +25,6 @@ if (config.REQUEST_GZIP) {
 
 var defaultRequest = request.defaults(requestOptions);
 
-router.get('/', function (req, res) {
-    res.render('index');
-});
-
 router.post('/login', function (req, res) {
     var login_id = req.body.login_id + '';
 
