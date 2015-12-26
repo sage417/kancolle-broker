@@ -25,6 +25,13 @@ if (config.REQUEST_GZIP) {
 
 var defaultRequest = request.defaults(requestOptions);
 
+function getMatchResult(partten, matchStr,groupIndex){
+    var result = partten.exec(matchStr);
+    if (result != null && result.length > groupIndex){
+        return result[groupIndex];
+    }
+}
+
 router.post('/login', function (req, res) {
     var login_id = req.body.login_id + '';
 
@@ -39,8 +46,12 @@ router.post('/login', function (req, res) {
         },
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
-                var dmm_token = htmlbody.split(/(['"])DMM_TOKEN\1\s*,\s*"([a-z0-9]{32})"/);
-                var post_data = htmlbody.split(/(['"])token\1\s*:\s*"([a-z0-9]{32})"/);
+                var token_pattern = /(['"])DMM_TOKEN\1\s*,\s*"([a-z0-9]{32})"/g;
+                var data_pattern = /(['"])token\1\s*:\s*"([a-z0-9]{32})"/g;
+
+                var dmm_token = getMatchResult(token_pattern,htmlbody,2);
+                data_pattern.lastIndex = token_pattern.lastIndex;
+                var post_data = getMatchResult(data_pattern,htmlbody,2);
 
                 var $ = cheerio.load(htmlbody);
                 var id_token = $('input#id_token').val();
