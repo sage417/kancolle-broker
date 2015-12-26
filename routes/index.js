@@ -39,8 +39,8 @@ router.post('/login', function (req, res) {
         },
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
-                var dmm_token = htmlbody.split(/DMM_TOKEN.*?"([a-z0-9]{32})"/)[1];
-                var post_data = htmlbody.split(/token.*?"([a-z0-9]{32})"/)[3];
+                var dmm_token = htmlbody.split(/(['"])DMM_TOKEN\1\s*,\s*"([a-z0-9]{32})"/)[1];
+                var post_data = htmlbody.split(/(['"])token\1\s*:\s*"([a-z0-9]{32})"/)[3];
 
                 var $ = cheerio.load(htmlbody);
                 var id_token = $('input#id_token').val();
