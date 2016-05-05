@@ -26,9 +26,10 @@ if (config.REQUEST_GZIP === true) {
 
 var defaultRequest = request.defaults(requestOptions);
 
-function getMatchResult(partten, matchStr,groupIndex){
-    var result = partten.exec(matchStr);
-    if (result != null && result.length > groupIndex){
+function getMatchResult(pattern, matchStr,groupIndex){
+    var result = pattern.exec(matchStr);
+    if (result && result.length > groupIndex){
+        pattern.lastIndex = 0;
         return result[groupIndex];
     }
 }
@@ -120,7 +121,7 @@ router.post('/login', function (req, res) {
         res.json({
             cookie: cookie,
             url: link
-        })
+        });
     });
 });
 
