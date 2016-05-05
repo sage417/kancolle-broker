@@ -8,18 +8,19 @@ var request = require('request');
 var cheerio = require('cheerio');
 var async = require('async');
 
-
-var userAgent = config.USER_AGENT;
+const userAgent = config.USER_AGENT;
+const token_pattern = /(['"])DMM_TOKEN\1\s*,\s*"([a-z0-9]{32})"/g;
+const data_pattern = /(['"])token\1\s*:\s*"([a-z0-9]{32})"/g;
 
 var requestOptions = {
     followRedirect: false
 };
 
 var timeout = config.REQUEST_TIMEOUT;
-if (Number.isInteger(timeout)) {
+if (Number.isInteger(timeout) && timeout > 0) {
     requestOptions['timeout'] = timeout;
 }
-if (config.REQUEST_GZIP) {
+if (config.REQUEST_GZIP === true) {
     requestOptions['gzip'] = true;
 }
 
@@ -46,8 +47,6 @@ router.post('/login', function (req, res) {
         },
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
-                var token_pattern = /(['"])DMM_TOKEN\1\s*,\s*"([a-z0-9]{32})"/g;
-                var data_pattern = /(['"])token\1\s*:\s*"([a-z0-9]{32})"/g;
 
                 var dmm_token = getMatchResult(token_pattern,htmlbody,2);
                 data_pattern.lastIndex = token_pattern.lastIndex;
@@ -96,10 +95,9 @@ router.post('/login', function (req, res) {
         },
         function (response, logindata, callback) {
             if (response.statusCode === 302) {
-                var cookie = '';
-                response.headers['set-cookie'].forEach(function (cookieString) {
-                    cookie += cookieString.split(';')[0] + ';';
-                });
+                var cookie = response.headers['set-cookie'].reduce(function (p, c) {
+                    return p + c.split(';')[0] + ';';
+                }, '');
                 defaultRequest({
                     url: config.KANCOLLE_GAME_URL,
                     headers: {
