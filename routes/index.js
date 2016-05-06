@@ -112,8 +112,11 @@ router.post('/login', function (req, res) {
                 callback('Login Error - Unknown Reason.', response, logindata);
             }
         }], function (error, response, htmlbody) {
-        if (error || response.statusCode !== 200) {
-            return res.status(500).send(error || 'Error return Status Code:' + response.statusCode);
+        if (error && response.statusCode !== 200) {
+            return res.json({
+                success: false,
+                error: error
+            });
         }
         var cookie = response.request.headers['Cookie'];
         var $ = cheerio.load(htmlbody);

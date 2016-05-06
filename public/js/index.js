@@ -74,7 +74,10 @@
             dataType:'json',
             cache:false,
             success: function (res, status) {
-                console.log(status);
+                if (res.success() === false) {
+                    alert(res.message);
+                    return;
+                }
                 if ($("#remember").prop('checked') && localStorageSupport) {
                     window.localStorage.setItem('cookie', res.cookie);
                 }
@@ -84,7 +87,6 @@
                 console.log(status);
                 console.log(error);
                 alert("Login Failed.");
-                //location.reload();
                 $("#remember").prop('checked', false);
             },
             beforeSend: function () {
