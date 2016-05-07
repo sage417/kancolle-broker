@@ -75,8 +75,7 @@
             cache:false,
             success: function (res, status) {
                 if (!res.success) {
-                    alert(res.message);
-                    return;
+                    return alert(res.error);
                 }
                 if ($("#remember").prop('checked') && localStorageSupport) {
                     window.localStorage.setItem('cookie', res.cookie);
