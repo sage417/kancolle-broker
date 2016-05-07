@@ -26,9 +26,9 @@ if (config.REQUEST_GZIP === true) {
 
 var defaultRequest = request.defaults(requestOptions);
 
-function getMatchResult(pattern, matchStr,groupIndex){
+function getMatchResult(pattern, matchStr, groupIndex) {
     var result = pattern.exec(matchStr);
-    if (result && result.length > groupIndex){
+    if (result && result.length > groupIndex) {
         pattern.lastIndex = 0;
         return result[groupIndex];
     }
@@ -49,9 +49,9 @@ router.post('/login', function (req, res) {
         function (response, htmlbody, callback) {
             if (response.statusCode === 200) {
 
-                var dmm_token = getMatchResult(token_pattern,htmlbody,2);
+                var dmm_token = getMatchResult(token_pattern, htmlbody, 2);
                 data_pattern.lastIndex = token_pattern.lastIndex;
-                var post_data = getMatchResult(data_pattern,htmlbody,2);
+                var post_data = getMatchResult(data_pattern, htmlbody, 2);
 
                 var $ = cheerio.load(htmlbody);
                 var id_token = $('input#id_token').val();
@@ -112,19 +112,13 @@ router.post('/login', function (req, res) {
                 callback('Login Error - Unknown Reason.', response, logindata);
             }
         }], function (error, response, htmlbody) {
-        if (error && response.statusCode !== 200) {
-            return res.json({
-                success: false,
-                error: error
-            });
+        if (error) {
+            return res.json({success: false, error: error});
         }
         var cookie = response.request.headers['Cookie'];
         var $ = cheerio.load(htmlbody);
         var link = $('iframe#game_frame').attr('src');
-        res.json({
-            cookie: cookie,
-            url: link
-        });
+        return res.json({success: true, cookie: cookie, url: link});
     });
 });
 
