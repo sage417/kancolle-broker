@@ -74,7 +74,7 @@
             dataType:'json',
             cache:false,
             success: function (res, status) {
-                if (res.success() === false) {
+                if (res.success === false) {
                     alert(res.message);
                     return;
                 }
